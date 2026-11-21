@@ -67,7 +67,7 @@
 
 
 ## Utilisation des outils d'IA
-
+AI 
 
 
 
