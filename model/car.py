@@ -22,11 +22,27 @@ class Car:
     def brake(self) -> None:
         """Freine la voiture, puis la fait reculer une fois arrêtée."""
         # Une seule méthode suffit : si la vitesse passe sous 0, la voiture recule
-        self.speed -= CAR_BRAKE
-
+        self.speed -= CAR_BRAKE        
 
     def update_position(self) -> None:
-        self.y += self.speed
+        """Met à jour la vitesse (frottement, limites) puis déplace la voiture."""
+        self.apply_friction()
+        self.limit_speed()
+        self.y += self.speed  # Pour l'instant, la voiture ne bouge que verticalement
+
+    def apply_friction(self) -> None:
+        """Ramène doucement la vitesse vers 0 quand on n'accélère pas."""
+        if self.speed > 0:
+            # max(0) : évite que la voiture se mette à reculer toute seule
+            self.speed = max(0.0, self.speed - CAR_FRICTION)
+        elif self.speed < 0:
+            # min(0) : évite que la voiture se mette à avancer toute seule
+            self.speed = min(0.0, self.speed + CAR_FRICTION)
+
+    def limit_speed(self) -> None:
+        """Garde la vitesse entre la vitesse max en arrière et en avant."""
+        self.speed = max(-CAR_MAX_REVERSE_SPEED, min(self.speed, CAR_MAX_SPEED))
+
 
     def build_sprite(self) -> pygame.Surface:
         surf = pygame.Surface((CAR_WIDTH, CAR_HEIGHT), pygame.SRCALPHA)
