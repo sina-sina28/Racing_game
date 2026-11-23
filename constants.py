@@ -7,6 +7,12 @@ GRID_COLS = 16
 GRID_ROWS = 12
 
 CAR_ACCELERATION = 0.05
+
+CAR_BRAKE = 0.1              # Force du frein, qui sert aussi pour la marche arrière
+CAR_MAX_SPEED = 6.0          # Vitesse maximale en avant (pixels par frame)
+CAR_MAX_REVERSE_SPEED = 2.5  # Vitesse maximale en arrière, plus faible qu'en avant
+CAR_FRICTION = 0.02          # Ralentissement naturel quand on n'appuie sur rien
+
 CAR_WIDTH = 30
 CAR_HEIGHT = 50
 
