@@ -1,8 +1,10 @@
 import pygame
 import math
 from constants import (
-    CAR_ACCELERATION, CAR_WIDTH, CAR_HEIGHT, TILE_SIZE
+    CAR_ACCELERATION, CAR_WIDTH, CAR_HEIGHT, TILE_SIZE,
+    CAR_BRAKE, CAR_MAX_SPEED, CAR_MAX_REVERSE_SPEED, CAR_FRICTION
 )
+
 
 
 class Car:
@@ -16,6 +18,12 @@ class Car:
 
     def accelerate(self) -> None:
         self.speed += CAR_ACCELERATION
+
+    def brake(self) -> None:
+        """Freine la voiture, puis la fait reculer une fois arrêtée."""
+        # Une seule méthode suffit : si la vitesse passe sous 0, la voiture recule
+        self.speed -= CAR_BRAKE
+
 
     def update_position(self) -> None:
         self.y += self.speed
