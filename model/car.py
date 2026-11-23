@@ -44,10 +44,29 @@ class Car:
         self.steering -= CAR_STEER_STEP
 
     def update_position(self) -> None:
-        """Met à jour la vitesse (frottement, limites) puis déplace la voiture."""
+        """Met à jour vitesse, braquage et orientation, puis déplace la voiture."""
         self.apply_friction()
         self.limit_speed()
-        self.y += self.speed  # Pour l'instant, la voiture ne bouge que verticalement
+        self.update_steering()
+
+        # La voiture tourne plus vite si elle roule vite et braque fort.
+        # En marche arrière (vitesse < 0), elle tourne dans l'autre sens.
+        self.angle += self.speed * self.steering * CAR_TURN_FACTOR
+        self.angle %= 360  # Garde l'angle entre 0 et 360
+
+        # On avance dans la direction de l'orientation
+        rad = math.radians(self.angle)
+        self.x += self.speed * math.cos(rad)
+        self.y -= self.speed * math.sin(rad)  # le minus (-) : sur l'écran, y augmente vers le bas
+
+    def update_steering(self) -> None:
+        """Ramène le volant vers le centre et limite le braquage."""
+        if self.steering > 0:
+            # max(0) ; min(0) : le volant s'arrête au centre au lieu de partir de l'autre côté
+            self.steering = max(0.0, self.steering - CAR_STEER_RETURN)
+        elif self.steering < 0:
+            self.steering = min(0.0, self.steering + CAR_STEER_RETURN)
+        self.steering = max(-CAR_MAX_STEERING, min(self.steering, CAR_MAX_STEERING))
 
     def apply_friction(self) -> None:
         """Ramène doucement la vitesse vers 0 quand on n'accélère pas."""
