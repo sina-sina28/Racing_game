@@ -16,6 +16,12 @@ CAR_FRICTION = 0.02          # Ralentissement naturel quand on n'appuie sur rien
 CAR_WIDTH = 30
 CAR_HEIGHT = 50
 
+CAR_MAX_STEERING = 30.0   # Braquage maximal des roues (degrés)
+CAR_STEER_STEP = 4.0      # Braquage ajouté à chaque frame où l'on tourne
+CAR_STEER_RETURN = 2.0    # Retour du volant vers le centre à chaque frame
+CAR_TURN_FACTOR = 0.015   # Lien entre vitesse x braquage et rotation de la voiture
+
+
 
 class GameState:
     MENU = "menu"
