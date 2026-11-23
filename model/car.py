@@ -2,7 +2,8 @@ import pygame
 import math
 from constants import (
     CAR_ACCELERATION, CAR_WIDTH, CAR_HEIGHT, TILE_SIZE,
-    CAR_BRAKE, CAR_MAX_SPEED, CAR_MAX_REVERSE_SPEED, CAR_FRICTION
+    CAR_BRAKE, CAR_MAX_SPEED, CAR_MAX_REVERSE_SPEED, CAR_FRICTION,
+    CAR_MAX_STEERING, CAR_STEER_STEP, CAR_STEER_RETURN, CAR_TURN_FACTOR
 )
 
 
@@ -21,7 +22,8 @@ class Car:
         self.x = start_col * TILE_SIZE + TILE_SIZE // 2
         self.y = start_row * TILE_SIZE + TILE_SIZE // 2
         self.speed: float = 0.0               # En pixels par frame, négative en marche arrière
-        self.angle: float = 0.0               # Orientation en degrés
+        self.angle: float = 0.0     # Orientation en degrés : 0 = vers la droite, augmente vers la gauche
+        self.steering: float = 0.0  # Braquage des roues en degrés : positif = à gauche (sens triginométrique)
         self.sprite = self.build_sprite()
 
     def accelerate(self) -> None:
@@ -31,7 +33,15 @@ class Car:
     def brake(self) -> None:
         """Freine la voiture, puis la fait reculer une fois arrêtée."""
         # Une seule méthode suffit : si la vitesse passe sous 0, la voiture recule
-        self.speed -= CAR_BRAKE        
+        self.speed -= CAR_BRAKE  
+
+    def turn_left(self) -> None:
+        """Tourne les roues vers la gauche (augmente le braquage)."""
+        self.steering += CAR_STEER_STEP
+
+    def turn_right(self) -> None:
+        """Tourne les roues vers la droite (diminue le braquage)."""
+        self.steering -= CAR_STEER_STEP
 
     def update_position(self) -> None:
         """Met à jour la vitesse (frottement, limites) puis déplace la voiture."""
@@ -51,7 +61,6 @@ class Car:
     def limit_speed(self) -> None:
         """Garde la vitesse entre la vitesse max en arrière et en avant."""
         self.speed = max(-CAR_MAX_REVERSE_SPEED, min(self.speed, CAR_MAX_SPEED))
-
 
     def build_sprite(self) -> pygame.Surface:
         """Crée l'image de la voiture : un rectangle rouge aux coins arrondis.
