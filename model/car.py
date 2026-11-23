@@ -94,7 +94,8 @@ class Car:
         self.update_steering()
         self.apply_throttle()
         self.rotate()
-        self.apply_grip()
+        self.update_drift_state()
+        self.apply_grip_or_drift()
         self.x += self.vx
         self.y += self.vy
 
@@ -114,13 +115,38 @@ class Car:
         v_long, _ = self.local_velocity()
         # Vitesse négative (marche arrière) : la voiture tourne dans l'autre sens
         self.angle = (self.angle + v_long * self.steering * CAR_TURN_FACTOR) % 360
+    
+    def update_drift_state(self) -> None:
+        """Automate de la voiture : passe de ADHÈRE à DÉRAPE, et inversement."""
+        v_long, v_lat = self.local_velocity()
+        # Tourner trop fort pour sa vitesse, par rapport à ce que permet le terrain
+        turning_too_hard = abs(v_long * self.steering) > self.seuil_derapage
 
-    def apply_grip(self) -> None:
-        """État ADHÈRE : la voiture va là où elle pointe, seul l'air la freine."""
-        v_long, _ = self.local_velocity()
+        if not self.is_drifting:
+            if turning_too_hard:
+                self.is_drifting = True
+        else:
+            # Écart (degrés) entre la direction du mouvement et l'orientation
+            slip = math.degrees(math.atan2(abs(v_lat), abs(v_long)))
+            realigned = slip < CAR_DRIFT_END_ANGLE and not turning_too_hard
+            almost_stopped = math.hypot(v_long, v_lat) < CAR_MIN_DRIFT_SPEED
+            if realigned or almost_stopped:
+                self.is_drifting = False
+
+    def apply_grip_or_drift(self) -> None:
+        """Applique le comportement de l'état actuel : ADHÈRE ou DÉRAPE."""
+        v_long, v_lat = self.local_velocity()
+        if self.is_drifting:
+            # La glissade diminue peu à peu, plus lentement si la traction est faible
+            v_lat *= 1 - CAR_DRIFT_REALIGN * self.traction
+            # Frottement du terrain pendant la glissade (fort sur route, presque nul sur glace)
+            v_long *= 1 - self.frottement_derapage
+            v_lat *= 1 - self.frottement_derapage
+        else:
+            v_lat = 0.0  # Adhère : la voiture va là où elle pointe
         v_long = self.apply_air_friction(v_long)
         v_long = self.limit_speed(v_long)
-        self.set_local_velocity(v_long, 0.0)  # Partie latérale supprimée : pas de glissade
+        self.set_local_velocity(v_long, v_lat)
 
     def apply_air_friction(self, v_long: float) -> float:
         """Frottement de l'air : ramène doucement la vitesse vers 0."""
