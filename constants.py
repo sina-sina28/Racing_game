@@ -21,6 +21,16 @@ CAR_STEER_STEP = 4.0      # Braquage ajouté à chaque frame où l'on tourne
 CAR_STEER_RETURN = 2.0    # Retour du volant vers le centre à chaque frame
 CAR_TURN_FACTOR = 0.015   # Lien entre vitesse x braquage et rotation de la voiture
 
+# --- Dérapage ---
+CAR_DRIFT_REALIGN = 0.05     # Vitesse de réalignement pendant un dérapage (multipliée par la traction)
+CAR_DRIFT_END_ANGLE = 5.0    # Écart (degrés) sous lequel le dérapage peut s'arrêter
+CAR_MIN_DRIFT_SPEED = 0.3    # Sous cette vitesse, la voiture arrête de déraper
+
+# --- Terrain par défaut (route), en attendant les cases de B ---
+DEFAULT_TRACTION = 1.0              # Facilité à accélérer et freiner
+DEFAULT_SEUIL_DERAPAGE = 150.0      # Vitesse x braquage au-delà duquel on dérape
+DEFAULT_FROTTEMENT_DERAPAGE = 0.05  # Part de la vitesse perdue à chaque frame en dérapage
+
 
 
 class GameState:
