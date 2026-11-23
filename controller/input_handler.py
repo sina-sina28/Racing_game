@@ -4,6 +4,8 @@ import pygame
 MAPPING = {
     pygame.K_UP:     "accelerate",
     pygame.K_DOWN:   "brake",  # Flèche du bas : freiner / reculer
+    pygame.K_LEFT:   "turn_left",   # Braquer à gauche
+    pygame.K_RIGHT:  "turn_right",  # Braquer à droite
 }
 
 
