@@ -82,16 +82,18 @@ class Car:
         self.speed = max(-CAR_MAX_REVERSE_SPEED, min(self.speed, CAR_MAX_SPEED))
 
     def build_sprite(self) -> pygame.Surface:
-        """Crée l'image de la voiture : un rectangle rouge aux coins arrondis.
+        """Crée l'image de la voiture, tournée vers la droite (angle 0).
 
         Returns:
-            Une surface transparente de taille CAR_WIDTH x CAR_HEIGHT.
+            Une surface transparente de taille CAR_HEIGHT x CAR_WIDTH.
         """
-        # SRCALPHA : le fond est transparent, seuls les pixels dessinés sont visibles (Dans notre cas, les coins sont invisibles sinon ils apparaîtraient en noir).
-        surf = pygame.Surface((CAR_WIDTH, CAR_HEIGHT), pygame.SRCALPHA)
-        pygame.draw.rect(surf, (255, 0, 0), (0, 0, CAR_WIDTH,
-                         CAR_HEIGHT), border_radius=5)
+        # La voiture regarde vers la droite : sa longueur (CAR_HEIGHT) est sur l'axe x
+        surf = pygame.Surface((CAR_HEIGHT, CAR_WIDTH), pygame.SRCALPHA)
+        pygame.draw.rect(surf, (255, 0, 0), (0, 0, CAR_HEIGHT, CAR_WIDTH), border_radius=5)
+        # Bande jaune à l'avant, pour voir dans quel sens la voiture pointe
+        pygame.draw.rect(surf, (255, 220, 0), (CAR_HEIGHT - 10, 4, 6, CAR_WIDTH - 8))
         return surf
+
 
     def get_rotated_sprite(self) -> tuple[pygame.Surface, pygame.Rect]:
         """Renvoie l'image tournée selon l'angle de la voiture, et sa position à l'écran.
@@ -100,8 +102,8 @@ class Car:
             L'image tournée et le rectangle où la dessiner, centré sur (x, y).
         """
         # pygame tourne dans le sens inverse des aiguilles d'une montre,
-        # d'où le signe moins : un angle positif tourne vers la droite
-        rotated = pygame.transform.rotate(self.sprite, -self.angle)
+        # # comme notre convention : pas besoin de signe moins
+        rotated = pygame.transform.rotate(self.sprite, self.angle)
         # L'image tournée est plus grande : on la recentre pour qu'elle ne "saute" pas
         rect = rotated.get_rect(center=(int(self.x), int(self.y)))
         return rotated, rect
