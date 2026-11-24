@@ -139,11 +139,15 @@ class Car:
         self.apply_grip_or_drift()
         self.x += self.vx
         self.y += self.vy
+        self.update_boost()
+
 
     def apply_throttle(self) -> None:
         """Applique l'accélération demandée, réduite selon la traction du terrain."""
         v_long, v_lat = self.local_velocity()
         v_long += self.throttle * self.traction
+        if self.is_boosted():
+            v_long += CAR_BOOST_ACCELERATION  # Poussée du boost, même sans appuyer sur avancer
         self.throttle = 0.0  # Remis à 0 : sans touche à la prochaine frame, pas d'accélération
         self.set_local_velocity(v_long, v_lat)
 
@@ -199,8 +203,15 @@ class Car:
         return 0.0
 
     def limit_speed(self, v_long: float) -> float:
-        """Garde la vitesse entre la vitesse max en arrière et en avant."""
-        return max(-CAR_MAX_REVERSE_SPEED, min(v_long, CAR_MAX_SPEED))
+        """Garde la vitesse dans ses limites, qui sont plus hautes pendant un boost."""
+        if v_long < -CAR_MAX_REVERSE_SPEED:
+            return -CAR_MAX_REVERSE_SPEED
+        if self.is_boosted():
+            return min(v_long, CAR_BOOST_MAX_SPEED)
+        if v_long > CAR_MAX_SPEED:
+            # Fin du boost : la vitesse redescend petit à petit au lieu de chuter d'un coup
+            return max(CAR_MAX_SPEED, v_long - CAR_BOOST_FADE)
+        return v_long
 
     def update_steering(self) -> None:
         """Ramène le volant vers le centre et limite le braquage."""
