@@ -87,21 +87,27 @@ class Car:
         self.vx = v_long * fx + v_lat * lx
         self.vy = v_long * fy + v_lat * ly
 
-# --- Physique, appelée à chaque frame ---
+    def get_speed(self) -> float:
+        """Renvoie la vitesse vers l'avant (négative en marche arrière)."""
+        return self.local_velocity()[0]
 
+    # --- Lien avec le circuit ---
+     
     def set_terrain(self, traction: float, seuil_derapage: float,
                         frottement_derapage: float) -> None:
-            """Met à jour les propriétés du terrain sous la voiture (appelée à chaque frame)."""
-            self.traction = traction
-            self.seuil_derapage = seuil_derapage
-            self.frottement_derapage = frottement_derapage
+        """Met à jour les propriétés du terrain sous la voiture (appelée à chaque frame)."""
+        self.traction = traction
+        self.seuil_derapage = seuil_derapage
+        self.frottement_derapage = frottement_derapage
     
     def reset_at(self, x: float, y: float) -> None:
-            """Replace la voiture à l'arrêt à une position donnée (utilisé pour le vide)."""
-            self.x, self.y = x, y
-            self.vx = self.vy = 0.0  # vitesse/braquage nulle aprés téleportation
-            self.steering = 0.0
-            self.is_drifting = False
+        """Replace la voiture à l'arrêt à une position donnée (utilisé pour le vide)."""
+        self.x, self.y = x, y
+        self.vx = self.vy = 0.0  # vitesse/braquage nulle aprés téleportation
+        self.steering = 0.0
+        self.is_drifting = False
+
+    # --- Physique, appelée à chaque frame ---
 
     def update_position(self) -> None:
         """Une frame de physique : volant, accélération, rotation, adhérence, déplacement."""
