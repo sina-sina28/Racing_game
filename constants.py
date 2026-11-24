@@ -32,12 +32,15 @@ DEFAULT_TRACTION = 1.0              # Facilité à accélérer et freiner
 DEFAULT_SEUIL_DERAPAGE = 150.0      # Vitesse x braquage au-delà duquel on dérape
 DEFAULT_FROTTEMENT_DERAPAGE = 0.05  # Part de la vitesse perdue à chaque frame en dérapage
 
-
+# --- Boost ---
+CAR_BOOST_DURATION = 90        # Durée du boost en frames (1,5 s à 60 FPS)
+CAR_BOOST_ACCELERATION = 0.15  # Poussée en plus à chaque frame pendant le boost
+CAR_BOOST_MAX_SPEED = 9.0      # Vitesse max pendant le boost (6.0 sans boost)
+CAR_BOOST_FADE = 0.1           # Perte de vitesse par frame après le boost, jusqu'à la vitesse max normale
 
 class GameState:
     MENU = "menu"
     RACING = "racing"
-
 
 # --- Couleurs UI ---
 COLOR_BG = (15, 15, 25)
@@ -45,3 +48,4 @@ COLOR_TEXT = (240, 240, 240)
 COLOR_ACCENT = (255, 200, 0)
 COLOR_PANEL = (30, 30, 50)
 COLOR_PANEL_BORDER = (60, 60, 100)
+
