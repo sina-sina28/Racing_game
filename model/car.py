@@ -5,7 +5,8 @@ from constants import (
     CAR_BRAKE,CAR_REVERSE_ACCELERATION, CAR_MAX_SPEED, CAR_MAX_REVERSE_SPEED, CAR_FRICTION,
     CAR_MAX_STEERING, CAR_STEER_STEP, CAR_STEER_RETURN, CAR_TURN_FACTOR,
     CAR_DRIFT_REALIGN, CAR_DRIFT_END_ANGLE, CAR_MIN_DRIFT_SPEED,
-    DEFAULT_TRACTION, DEFAULT_SEUIL_DERAPAGE, DEFAULT_FROTTEMENT_DERAPAGE
+    DEFAULT_TRACTION, DEFAULT_SEUIL_DERAPAGE, DEFAULT_FROTTEMENT_DERAPAGE,
+    CAR_BOOST_DURATION, CAR_BOOST_ACCELERATION, CAR_BOOST_MAX_SPEED, CAR_BOOST_FADE
 )
 
 
@@ -22,6 +23,7 @@ class Car:
         # Position du centre de la voiture, en pixels
         self.x = start_col * TILE_SIZE + TILE_SIZE // 2
         self.y = start_row * TILE_SIZE + TILE_SIZE // 2
+
         # Vitesse réelle à l'écran (pixels par frame), séparée de l'orientation
         self.vx: float = 0.0
         self.vy: float = 0.0
@@ -29,6 +31,8 @@ class Car:
         self.steering: float = 0.0  # Braquage des roues en degrés : positif = à gauche
         self.throttle: float = 0.0  # Accélération demandée pendant cette frame (négative = frein)
         self.is_drifting: bool = False  # État de l'automate : False = ADHÈRE, True = DÉRAPE
+        self.boost_timer: int = 0  # Frames de boost restantes (0 = pas de boost)
+
         # Propriétés du terrain sous la voiture (route par défaut)
         self.traction: float = DEFAULT_TRACTION
         self.seuil_derapage: float = DEFAULT_SEUIL_DERAPAGE
@@ -106,7 +110,24 @@ class Car:
         self.vx = self.vy = 0.0  # vitesse/braquage nulle aprés téleportation
         self.steering = 0.0
         self.is_drifting = False
+        self.boost_timer = 0  # Pas de boost conservé après la téléportation
 
+    # --- Boost ---
+
+    def apply_boost(self) -> None:
+        """Active le boost (appelée par le circuit quand la voiture passe sur une case boost)."""
+        # On remet le compteur au maximum sans l'additionner : rester sur la case ne rend pas le boost infini
+        self.boost_timer = CAR_BOOST_DURATION
+
+    def is_boosted(self) -> bool:
+        """Indique si la voiture est en boost (utile pour l'affichage)."""
+        return self.boost_timer > 0
+
+    def update_boost(self) -> None:
+        """Fait diminuer la durée restante du boost d'une frame."""
+        if self.boost_timer > 0:
+            self.boost_timer -= 1
+   
     # --- Physique, appelée à chaque frame ---
 
     def update_position(self) -> None:
