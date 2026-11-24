@@ -6,12 +6,13 @@ TILE_SIZE = 64
 GRID_COLS = 16
 GRID_ROWS = 12
 
-CAR_ACCELERATION = 0.05
+CAR_ACCELERATION = 0.07          # Accélération vers l'avant
 
-CAR_BRAKE = 0.1              # Force du frein, qui sert aussi pour la marche arrière
-CAR_MAX_SPEED = 6.0          # Vitesse maximale en avant (pixels par frame)
-CAR_MAX_REVERSE_SPEED = 2.5  # Vitesse maximale en arrière, plus faible qu'en avant
-CAR_FRICTION = 0.02          # Ralentissement naturel quand on n'appuie sur rien
+CAR_BRAKE = 0.1                  # Force du frein
+CAR_REVERSE_ACCELERATION = 0.05  # Marche arrière : 2 fois plus douce que le frein, environ 70 % de l'accélération avant
+CAR_MAX_SPEED = 6.0              # Vitesse maximale en avant (pixels par frame)
+CAR_MAX_REVERSE_SPEED = 2.5      # Vitesse maximale en arrière, plus faible qu'en avant
+CAR_FRICTION = 0.02              # Ralentissement naturel quand on n'appuie sur rien
 
 CAR_WIDTH = 30
 CAR_HEIGHT = 50
@@ -24,7 +25,7 @@ CAR_TURN_FACTOR = 0.015   # Lien entre vitesse x braquage et rotation de la voit
 # --- Dérapage ---
 CAR_DRIFT_REALIGN = 0.05     # Vitesse de réalignement pendant un dérapage (multipliée par la traction)
 CAR_DRIFT_END_ANGLE = 5.0    # Écart (degrés) sous lequel le dérapage peut s'arrêter
-CAR_MIN_DRIFT_SPEED = 0.3    # Sous cette vitesse, la voiture arrête de déraper
+CAR_MIN_DRIFT_SPEED = 0.2    # Sous cette vitesse, la voiture arrête de déraper
 
 # --- Terrain par défaut (route), en attendant les cases de B ---
 DEFAULT_TRACTION = 1.0              # Facilité à accélérer et freiner

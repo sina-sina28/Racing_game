@@ -2,7 +2,7 @@ import pygame
 import math
 from constants import (
     CAR_ACCELERATION, CAR_WIDTH, CAR_HEIGHT, TILE_SIZE,
-    CAR_BRAKE, CAR_MAX_SPEED, CAR_MAX_REVERSE_SPEED, CAR_FRICTION,
+    CAR_BRAKE,CAR_REVERSE_ACCELERATION, CAR_MAX_SPEED, CAR_MAX_REVERSE_SPEED, CAR_FRICTION,
     CAR_MAX_STEERING, CAR_STEER_STEP, CAR_STEER_RETURN, CAR_TURN_FACTOR,
     CAR_DRIFT_REALIGN, CAR_DRIFT_END_ANGLE, CAR_MIN_DRIFT_SPEED,
     DEFAULT_TRACTION, DEFAULT_SEUIL_DERAPAGE, DEFAULT_FROTTEMENT_DERAPAGE
@@ -42,8 +42,12 @@ class Car:
         self.throttle = CAR_ACCELERATION
 
     def brake(self) -> None:
-        """Demande un freinage, ou une marche arrière si la voiture est arrêtée."""
-        self.throttle = -CAR_BRAKE
+        """Freine si la voiture avance, sinon accélère en marche arrière."""
+        if self.get_speed() > 0:
+            self.throttle = -CAR_BRAKE  # Freiner : effet fort
+        else:
+            # Reculer : aussi doux que l'accélération avant, et non pas avec la force du frein
+            self.throttle = -CAR_REVERSE_ACCELERATION
 
     def turn_left(self) -> None:
         """Tourne les roues vers la gauche (augmente le braquage)."""
