@@ -14,7 +14,7 @@ CAR_HEIGHT = 50
 class GameState:
     MENU = "menu"
     RACING = "racing"
-
+    CIRCUIT_SELECTION = "circuit_selection"  # 1 Le joueur choisit son circuit avant la course
 
 # --- Couleurs UI ---
 COLOR_BG = (15, 15, 25)
