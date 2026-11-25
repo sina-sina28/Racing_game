@@ -18,6 +18,8 @@ class GameModel:
         self.circuit: Circuit | None = None
         self.car: Car | None = None
 
+        self.car_2: Car | None = None  # 3.1 La deuxième voiture sera créée au départ
+
     def load_circuit(self) -> None:
         cols = GRID_COLS               # 1 Le premier circuit garde sa largeur de départ
         if self.selected_circuit == 1:
@@ -31,6 +33,7 @@ class GameModel:
         self.spawn_car()
     def spawn_car(self) -> None:
         self.car = Car(7, 1)
+        self.car_2 = Car(7, 2)  # 3.1 J2 démarre une case plus bas que J1
 
     def update_car_terrain(self, car: Car) -> None:
         """Donne à la voiture les propriétés du terrain de la case sous elle."""
@@ -50,3 +53,6 @@ class GameModel:
             return
         self.update_car_terrain(self.car)  # D'abord le terrain, pour que la physique l'utilise
         self.car.update_position()
+
+        self.update_car_terrain(self.car_2)  # 3.1 On regarde le terrain sous J2
+        self.car_2.update_position()  # 3.1 On déplace aussi la deuxième voiture

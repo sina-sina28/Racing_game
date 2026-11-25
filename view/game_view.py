@@ -78,3 +78,6 @@ class GameView:
             return
         surf, rect = model.car.get_rotated_sprite()
         self.screen.blit(surf, rect)
+
+        surf_2, rect_2 = model.car_2.get_rotated_sprite()  # 3.1 On récupère l’image et la position de J2
+        self.screen.blit(surf_2, rect_2)                   # 3.1 On dessine J2 sur le circuit

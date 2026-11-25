@@ -7,7 +7,7 @@ from constants import (
 from model.game_model import GameModel
 from view.game_view import GameView
 from controller.input_handler import InputHandler
-
+from controller.input_handler import InputHandler, MAPPING_J1   # 3.1 ajouter mapping de joueur1
 
 class GameController:
 
@@ -16,7 +16,10 @@ class GameController:
         self.clock = pygame.time.Clock()
         self.model = GameModel()
         self.view = GameView(self.screen)
-        self.input_handler = InputHandler()
+
+        self.input_j1 = InputHandler(MAPPING_J1)  # 3.1 Les lettres pour J1
+        self.input_j2 = InputHandler()            # 3.1 Les flèches pour J2
+
         self.running = True
 
     def run(self) -> None:
@@ -81,9 +84,9 @@ class GameController:
         if self.model.state != GameState.RACING:
             return
 
-        p1_input = self.input_handler.get_inputs()
-        car = self.model.car
-        self.apply_input(car, p1_input)
+        self.apply_input(self.model.car, self.input_j1.get_inputs())  # 3.1 J1 contrôle sa voiture
+        self.apply_input(self.model.car_2, self.input_j2.get_inputs())  # 3.1 J2 contrôle la sienne
+        
         self.model.update()
 
     def apply_input(self, car, player_input) -> None:
