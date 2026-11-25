@@ -46,6 +46,17 @@ class GameController:
         elif state == GameState.CIRCUIT_SELECTION:  # 1 Gere les touches de l’ecran de selection
             self.handle_circuit_selection_key(key)
 
+        elif state == GameState.RACING:
+            if key == pygame.K_ESCAPE:
+                self.model.state = GameState.PAUSED  # 2 Échap met la course en pause
+
+        elif state == GameState.PAUSED:
+            if key == pygame.K_ESCAPE:
+                self.model.state = GameState.RACING  # 2 Échap reprend la course
+            elif key == pygame.K_m:
+                self.model.state = GameState.MENU  # 2 M revient au menu
+
+
     def handle_menu_key(self, key: int) -> None:
         if key == pygame.K_RETURN:
             self.model.state = GameState.CIRCUIT_SELECTION  # 1 Entree ouvre le choix du circuit

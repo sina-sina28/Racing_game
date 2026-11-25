@@ -21,6 +21,14 @@ class GameView:
             self._draw_circuit_selection(model)                # 1 On affiche les deux circuits
         elif model.state == GameState.RACING:
             self._draw_racing(model)
+
+        elif model.state == GameState.PAUSED:
+            self._draw_racing(model)            # 2 On garde le circuit et la voiture à l'écran
+            message = self.font.render("Pause  |  Échap : reprendre  |  M : menu", True, COLOR_ACCENT)
+            rect = message.get_rect(center=(WINDOW_WIDTH // 2, 40))
+            pygame.draw.rect(self.screen, COLOR_PANEL, rect.inflate(30, 16))
+            self.screen.blit(message, rect)                  # 2 On affiche les touches de pause
+
         pygame.display.flip()
 
     def _draw_menu(self, model: GameModel) -> None:

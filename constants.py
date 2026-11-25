@@ -15,7 +15,7 @@ class GameState:
     MENU = "menu"
     RACING = "racing"
     CIRCUIT_SELECTION = "circuit_selection"  # 1 Le joueur choisit son circuit avant la course
-
+    PAUSED = "paused"                        # 2 Le jeu est en pause
 # --- Couleurs UI ---
 COLOR_BG = (15, 15, 25)
 COLOR_TEXT = (240, 240, 240)
