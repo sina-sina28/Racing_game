@@ -53,6 +53,11 @@ class GameController:
             if key == pygame.K_ESCAPE:
                 self.model.state = GameState.PAUSED  # 2 Échap met la course en pause
 
+            elif key == pygame.K_SPACE:  # 3.3 J1 appuie sur Espace pour utiliser son objet
+                print("J1 : commande objet")
+            elif key == pygame.K_RETURN:  # 3.3 J2 appuie sur Entrée pour utiliser son objet
+                print("J2 : commande objet")
+
         elif state == GameState.PAUSED:
             if key == pygame.K_ESCAPE:
                 self.model.state = GameState.RACING  # 2 Échap reprend la course
