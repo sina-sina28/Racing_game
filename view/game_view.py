@@ -81,3 +81,8 @@ class GameView:
 
         surf_2, rect_2 = model.car_2.get_rotated_sprite()  # 3.1 On récupère l’image et la position de J2
         self.screen.blit(surf_2, rect_2)                   # 3.1 On dessine J2 sur le circuit
+
+        for nom, position in (("J1", rect), ("J2", rect_2)):  # 3.2 Chaque voiture a son nom.
+            texte = self.font.render(nom, True, COLOR_TEXT)
+            place = texte.get_rect(midbottom=(position.centerx, position.top - 4)) # 3.2 On place le nom juste au-dessus
+            self.screen.blit(texte, place)
