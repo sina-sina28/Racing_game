@@ -30,6 +30,11 @@ class GameModel:
             for row in range(GRID_ROWS)
         ]
         self.circuit = Circuit(grid=grid)
+
+        self.checkpoints = {(9, 1), (9, 2)}  # 4.1 Les deux points de passage de la grille de test
+        self.visited = {1: set(), 2: set()}  # 4.1 Chaque joueur commence avec zéro point visité
+        self.last_checkpoint = {1: None, 2: None}  # 4.1 Au départ, personne n’a atteint de point
+
         self.spawn_car()
     def spawn_car(self) -> None:
         self.car = Car(7, 1)
@@ -47,6 +52,16 @@ class GameModel:
             getattr(tile, "frottement_derapage", DEFAULT_FROTTEMENT_DERAPAGE),
         )
 
+    def check_checkpoint(self, player, car):
+        tile = self.circuit.get_tile_at_pixel(car.x, car.y)  # 4.1 On cherche la case sous la voiture
+        if tile is None:
+            return
+
+        point = (tile.col, tile.row)
+        if point in self.checkpoints:
+            self.visited[player].add(point)  # 4.1 On garde ce point pour ce joueur
+            self.last_checkpoint[player] = point  # 4.1 On retient son dernier point de passage
+
     def update(self) -> None:
         """Met à jour le jeu pendant la course : terrain sous la voiture, puis physique."""
         if self.state != GameState.RACING or self.circuit is None:
@@ -56,3 +71,6 @@ class GameModel:
 
         self.update_car_terrain(self.car_2)  # 3.1 On regarde le terrain sous J2
         self.car_2.update_position()  # 3.1 On déplace aussi la deuxième voiture
+
+        self.check_checkpoint(1, self.car)  # 4.1 On vérifie où J1 vient d’arriver
+        self.check_checkpoint(2, self.car_2)  # 4.1 On fait pareil pour J2
