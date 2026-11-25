@@ -18,6 +18,11 @@ class GameView:
         image = pygame.image.load(str(chemin)).convert()                                 # 2.1 On charge l’image du menu
         self.menu_accueil = pygame.transform.smoothscale(image, self.screen.get_size())  # 2.1 On l’adapte à la fenêtre
 
+        fond = pygame.image.load(str(chemin.with_name("choix_circuit.png"))).convert()
+        self.fond_circuits = pygame.transform.smoothscale(fond, self.screen.get_size())  # 3.4 Fond du choix du circuit
+        self.police_titre = pygame.font.SysFont("Arial", 64, bold=True, italic=True)
+        self.position_cadre = 0.0                                       # 3.4 Le cadre commence sur le premier circuit
+
     def draw(self, model: GameModel) -> None:
         self.screen.fill(COLOR_BG)
         if model.state == GameState.MENU:
@@ -41,24 +46,34 @@ class GameView:
 
     def _draw_circuit_selection(self, model: GameModel) -> None:
         """Affiche les deux circuits et montre lequel est choisi."""
-        cx = WINDOW_WIDTH // 2                                          # 1 On prend le milieu de l’écran
 
-        title = self.font.render("Choix du circuit", True, COLOR_ACCENT)
+        self.screen.blit(self.fond_circuits, (0, 0))  # 3.4 On dessine la piste derrière les boutons
+
+        cx = WINDOW_WIDTH // 2                                  # 1 On prend le milieu de l’écran
+
+        title = self.police_titre.render("Choix du circuit", True, (255, 207, 66))
+
         self.screen.blit(title, title.get_rect(center=(cx, 160)))
 
+        ecart = model.selected_circuit - self.position_cadre
+        self.position_cadre += ecart * 0.2              # 3.4 À chaque image, le cadre se rapproche du circuit choisi
+
         for index, name in enumerate(model.circuit_names):
-            selected = index == model.selected_circuit                   # 1 On regarde si ce circuit est choisi
+            selected = index == model.selected_circuit                 # 1 On regarde si ce circuit est choisi
             color = COLOR_ACCENT if selected else COLOR_TEXT
 
-            rect = pygame.Rect(cx - 140, 280 + index * 65, 280, 50)
-            pygame.draw.rect(self.screen, COLOR_PANEL, rect, border_radius=8)
-
-            if selected:
-                pygame.draw.rect(self.screen, color, rect, 2, border_radius=8)  # 1 On encadre le circuit choisi
-
+            rect = pygame.Rect(cx - 145, 300 + index * 82, 290, 50)
+            bouton = pygame.Surface(rect.size, pygame.SRCALPHA)
+            pygame.draw.rect(bouton, (22, 20, 48, 165), bouton.get_rect(), border_radius=10)
+            self.screen.blit(bouton, rect)  # 3.4 On voit encore la piste à travers le bouton
+            pygame.draw.rect(self.screen, (67, 170, 202), rect, 2, border_radius=10)
             label = self.font.render(name, True, color)
             self.screen.blit(label, label.get_rect(center=rect.center))
 
+        hauteur = round(300 + self.position_cadre * 82)
+        cadre = pygame.Rect(cx - 145, hauteur, 290, 50)
+        pygame.draw.rect(self.screen, (255, 207, 66), cadre, 3, border_radius=10)  # 3.4 Un seul cadre suit le choix
+        
         hint = self.font.render(
             "↑ ↓ Choisir   Entrée Valider   Échap Retour",
             True,
