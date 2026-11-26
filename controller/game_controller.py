@@ -8,6 +8,8 @@ from model.game_model import GameModel
 from view.game_view import GameView
 from controller.input_handler import InputHandler
 from controller.input_handler import InputHandler, MAPPING_J1   # 3.1 ajouter mapping de joueur1
+from pathlib import Path
+
 
 class GameController:
 
@@ -53,6 +55,8 @@ class GameController:
             if key == pygame.K_ESCAPE:
                 self.model.state = GameState.PAUSED  # 2 Échap met la course en pause
 
+                pygame.mixer.music.pause()  # 5.3 Je mets la musique en pause
+
             elif key == pygame.K_SPACE:  # 3.3 J1 appuie sur Espace pour utiliser son objet
                 print("J1 : commande objet")
             elif key == pygame.K_RETURN:  # 3.3 J2 appuie sur Entrée pour utiliser son objet
@@ -61,11 +65,21 @@ class GameController:
         elif state == GameState.PAUSED:
             if key == pygame.K_ESCAPE:
                 self.model.state = GameState.RACING  # 2 Échap reprend la course
+
+                pygame.mixer.music.unpause()        # 5.3 Je reprends la musique au même endroit
+
             elif key == pygame.K_m:
                 self.model.state = GameState.MENU  # 2 M revient au menu
 
+                self.play_menu_music()  # 5.3 Je remets la musique du menu
+
         elif state == GameState.FINISHED and key == pygame.K_m:
             self.model.state = GameState.MENU        # 5.2 Après la victoire, M ramène au menu
+
+    def play_menu_music(self):
+        dossier = Path(__file__).resolve().parent.parent / "assets" / "music"
+        pygame.mixer.music.load(str(dossier / "Menu principale.mp3"))
+        pygame.mixer.music.play(-1)                 # 5.3 Je relance la musique du menu
 
     def handle_menu_key(self, key: int) -> None:
         if key == pygame.K_RETURN:
@@ -83,6 +97,13 @@ class GameController:
                 self.model.selected_circuit += 1  # 1 Sélectionne le circuit suivant
         elif key == pygame.K_RETURN:
             self.model.load_circuit()  # 1 Charge le circuit choisi
+
+            musiques = ("Circuit 1 (Easy).mp3", "Circuit 2 (Normal).mp3", "Circuit 3 (Hard).mp3")
+            musique = musiques[self.model.selected_circuit]  # 5.3 Je prends la musique du circuit choisi
+            dossier = Path(__file__).resolve().parent.parent / "assets" / "music"
+            pygame.mixer.music.load(str(dossier / musique))
+            pygame.mixer.music.play(-1)                        # 5.3 Je joue la musique en boucle pendant la course
+
             self.model.state = GameState.RACING  # 1 Lance la course
         elif key == pygame.K_ESCAPE:
             self.model.state = GameState.MENU  # 1 Revient au menu principal
