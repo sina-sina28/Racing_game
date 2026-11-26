@@ -29,7 +29,7 @@ class GameView:
             self._draw_menu(model)
         elif model.state == GameState.CIRCUIT_SELECTION:
             self._draw_circuit_selection(model)                # 1 On affiche les deux circuits
-            
+
         elif model.state in (GameState.RACING, GameState.FINISHED):  # 4.3 On garde la piste visible à la fin
             self._draw_racing(model)
 
@@ -80,7 +80,7 @@ class GameView:
             True,
             COLOR_TEXT,
         )
-        self.screen.blit(hint, hint.get_rect(center=(cx, 480)))
+        self.screen.blit(hint, hint.get_rect(center=(cx, 565)))             # 4.4 On place l’aide sous le troisième bouton
 
     def _draw_racing(self, model: GameModel) -> None:
 

@@ -12,7 +12,9 @@ class GameModel:
     def __init__(self):
         self.state: str = GameState.MENU
 
-        self.circuit_names = ("Circuit 1", "Circuit 2")  # 1 Les deux circuits du menu
+        self.circuit_names = (  # 4.4 On affiche la difficulté de chaque circuit.
+"Circuit 1 - Easy","Circuit 2 - Intermediate","Circuit 3 - Hard",)
+        
         self.selected_circuit = 0                        # 1 Au début, on choisit le premier circuit
 
         self.circuit: Circuit | None = None
@@ -24,6 +26,9 @@ class GameModel:
         cols = GRID_COLS               # 1 Le premier circuit garde sa largeur de départ
         if self.selected_circuit == 1:
             cols = 12                  # 1 Le deuxième circuit a 12 colonnes
+
+        elif self.selected_circuit == 2:
+            cols = 11               # 4.4 Grille provisoire pour tester le troisième choix
 
         grid = [
             [RoadTile(col=col, row=row) for col in range(cols)]
