@@ -38,6 +38,9 @@ class GameModel:
         self.finish_tile = (10, 2)  # 4.2 On place l’arrivée sur cette case de test
         self.laps = {1: 0, 2: 0}     # 4.2 Chaque joueur commence à zéro tour
 
+        self.laps_to_win = 3  # 4.3 Sur nos circuits de test, il faut finir 3 tours
+        self.winner = None  # 4.3 Au départ, personne n’a gagné
+
         self.spawn_car()
     def spawn_car(self) -> None:
         self.car = Car(7, 1)
@@ -56,6 +59,10 @@ class GameModel:
         )
 
     def check_checkpoint(self, player, car):
+
+        if self.winner is not None:
+            return               # 4.3 On a déjà un gagnant, la course est finie
+
         tile = self.circuit.get_tile_at_pixel(car.x, car.y)  # 4.1 On cherche la case sous la voiture
         if tile is None:
             return
@@ -69,6 +76,10 @@ class GameModel:
             if self.visited[player] == self.checkpoints:
                 self.laps[player] += 1         # 4.2 Le joueur a vu tous les points, il gagne un tour
                 self.visited[player].clear()   # 4.2 Il doit repasser par les points au tour suivant
+
+                if self.laps[player] >= self.laps_to_win:
+                    self.winner = player             # 4.3 On garde le numéro du gagnant
+                    self.state = GameState.FINISHED  # 4.3 Les voitures s’arrêtent
 
     def update(self) -> None:
         """Met à jour le jeu pendant la course : terrain sous la voiture, puis physique."""

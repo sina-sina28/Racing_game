@@ -29,7 +29,8 @@ class GameView:
             self._draw_menu(model)
         elif model.state == GameState.CIRCUIT_SELECTION:
             self._draw_circuit_selection(model)                # 1 On affiche les deux circuits
-        elif model.state == GameState.RACING:
+            
+        elif model.state in (GameState.RACING, GameState.FINISHED):  # 4.3 On garde la piste visible à la fin
             self._draw_racing(model)
 
         elif model.state == GameState.PAUSED:
@@ -73,7 +74,7 @@ class GameView:
         hauteur = round(300 + self.position_cadre * 82)
         cadre = pygame.Rect(cx - 145, hauteur, 290, 50)
         pygame.draw.rect(self.screen, (255, 207, 66), cadre, 3, border_radius=10)  # 3.4 Un seul cadre suit le choix
-        
+
         hint = self.font.render(
             "↑ ↓ Choisir   Entrée Valider   Échap Retour",
             True,
