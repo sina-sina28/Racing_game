@@ -33,8 +33,21 @@ class GameView:
         elif model.state in (GameState.RACING, GameState.FINISHED):  # 4.3 On garde la piste visible à la fin
             self._draw_racing(model)
 
+            if model.state == GameState.FINISHED:
+                titre = self.police_titre.render(f"J{model.winner} a gagné !", True, COLOR_ACCENT)
+                aide = self.font.render("M pour revenir au menu", True, COLOR_TEXT)
+
+                cx, cy = self.screen.get_rect().center
+                titre_rect = titre.get_rect(center=(cx, cy - 20))
+                aide_rect = aide.get_rect(center=(cx, titre_rect.bottom + 20))
+                panneau = titre_rect.union(aide_rect).inflate(48, 32)    # 5.2 On garde une marge autour des deux textes
+
+                pygame.draw.rect(self.screen, COLOR_PANEL, panneau, border_radius=12)
+                self.screen.blit(titre, titre_rect)                      # 5.2 On affiche le gagnant au milieu de l’écran
+                self.screen.blit(aide, aide_rect)
+
         elif model.state == GameState.PAUSED:
-            self._draw_racing(model)            # 2 On garde le circuit et la voiture à l'écran
+            self._draw_racing(model)                        # 2 On garde le circuit et la voiture à l'écran
             message = self.font.render("Pause  |  Échap : reprendre  |  M : menu", True, COLOR_ACCENT)
             rect = message.get_rect(center=(WINDOW_WIDTH // 2, 40))
             pygame.draw.rect(self.screen, COLOR_PANEL, rect.inflate(30, 16))

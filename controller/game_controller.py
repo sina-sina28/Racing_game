@@ -64,6 +64,8 @@ class GameController:
             elif key == pygame.K_m:
                 self.model.state = GameState.MENU  # 2 M revient au menu
 
+        elif state == GameState.FINISHED and key == pygame.K_m:
+            self.model.state = GameState.MENU        # 5.2 Après la victoire, M ramène au menu
 
     def handle_menu_key(self, key: int) -> None:
         if key == pygame.K_RETURN:
