@@ -7,6 +7,8 @@ from constants import (
 from model.game_model import GameModel
 from view.game_view import GameView
 from controller.input_handler import InputHandler
+from controller.input_handler import InputHandler, MAPPING_J1   # 3.1 ajouter mapping de joueur1
+from pathlib import Path
 
 
 class GameController:
@@ -16,7 +18,10 @@ class GameController:
         self.clock = pygame.time.Clock()
         self.model = GameModel()
         self.view = GameView(self.screen)
-        self.input_handler = InputHandler()
+
+        self.input_j1 = InputHandler(MAPPING_J1)  # 3.1 Les lettres pour J1
+        self.input_j2 = InputHandler()            # 3.1 Les flèches pour J2
+
         self.running = True
 
     def run(self) -> None:
@@ -41,20 +46,76 @@ class GameController:
         if state == GameState.MENU:
             self.handle_menu_key(key)
 
+        if state == GameState.MENU:
+            self.handle_menu_key(key)
+        elif state == GameState.CIRCUIT_SELECTION:  # 1 Gere les touches de l’ecran de selection
+            self.handle_circuit_selection_key(key)
+
+        elif state == GameState.RACING:
+            if key == pygame.K_ESCAPE:
+                self.model.state = GameState.PAUSED  # 2 Échap met la course en pause
+
+                pygame.mixer.music.pause()  # 5.3 Je mets la musique en pause
+
+            elif key == pygame.K_SPACE:  # 3.3 J1 appuie sur Espace pour utiliser son objet
+                print("J1 : commande objet")
+            elif key == pygame.K_RETURN:  # 3.3 J2 appuie sur Entrée pour utiliser son objet
+                print("J2 : commande objet")
+
+        elif state == GameState.PAUSED:
+            if key == pygame.K_ESCAPE:
+                self.model.state = GameState.RACING  # 2 Échap reprend la course
+
+                pygame.mixer.music.unpause()        # 5.3 Je reprends la musique au même endroit
+
+            elif key == pygame.K_m:
+                self.model.state = GameState.MENU  # 2 M revient au menu
+
+                self.play_menu_music()  # 5.3 Je remets la musique du menu
+
+        elif state == GameState.FINISHED and key == pygame.K_m:
+            self.model.state = GameState.MENU        # 5.2 Après la victoire, M ramène au menu
+            self.play_menu_music()  # 5.3 La première fois, j'ai oublié de relancer la musique du menu après la victoire.
+
+    def play_menu_music(self):
+        dossier = Path(__file__).resolve().parent.parent / "assets" / "music"
+        pygame.mixer.music.load(str(dossier / "Menu principale.mp3"))
+        pygame.mixer.music.play(-1)                 # 5.3 Je relance la musique du menu
+
     def handle_menu_key(self, key: int) -> None:
         if key == pygame.K_RETURN:
-            self.model.load_circuit()
-            self.model.state = GameState.RACING
+            self.model.state = GameState.CIRCUIT_SELECTION  # 1 Entree ouvre le choix du circuit
         elif key == pygame.K_ESCAPE:
             self.quit()
+
+    def handle_circuit_selection_key(self, key: int) -> None:
+        """Gère les touches pendant le choix du circuit."""
+        if key == pygame.K_UP and self.model.selected_circuit > 0:
+            self.model.selected_circuit -= 1  # 1 Sélectionne le circuit précédent
+        elif key == pygame.K_DOWN:
+            last_index = len(self.model.circuit_names) - 1  # 1 Indice du dernier circuit
+            if self.model.selected_circuit < last_index:
+                self.model.selected_circuit += 1  # 1 Sélectionne le circuit suivant
+        elif key == pygame.K_RETURN:
+            self.model.load_circuit()  # 1 Charge le circuit choisi
+
+            musiques = ("Circuit 1 (Easy).mp3", "Circuit 2 (Normal).mp3", "Circuit 3 (Hard).mp3")
+            musique = musiques[self.model.selected_circuit]  # 5.3 Je prends la musique du circuit choisi
+            dossier = Path(__file__).resolve().parent.parent / "assets" / "music"
+            pygame.mixer.music.load(str(dossier / musique))
+            pygame.mixer.music.play(-1)                        # 5.3 Je joue la musique en boucle pendant la course
+
+            self.model.state = GameState.RACING  # 1 Lance la course
+        elif key == pygame.K_ESCAPE:
+            self.model.state = GameState.MENU  # 1 Revient au menu principal
 
     def update(self) -> None:
         if self.model.state != GameState.RACING:
             return
 
-        p1_input = self.input_handler.get_inputs()
-        car = self.model.car
-        self.apply_input(car, p1_input)
+        self.apply_input(self.model.car, self.input_j1.get_inputs())  # 3.1 J1 contrôle sa voiture
+        self.apply_input(self.model.car_2, self.input_j2.get_inputs())  # 3.1 J2 contrôle la sienne
+        
         self.model.update()
 
     def apply_input(self, car, player_input) -> None:

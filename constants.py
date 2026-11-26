@@ -41,7 +41,9 @@ CAR_BOOST_FADE = 0.1           # Perte de vitesse par frame après le boost, jus
 class GameState:
     MENU = "menu"
     RACING = "racing"
-
+    CIRCUIT_SELECTION = "circuit_selection"  # 1 Le joueur choisit son circuit avant la course
+    PAUSED = "paused"                        # 2 Le jeu est en pause
+    FINISHED = "finished"                    # 4.3 La course est terminée
 # --- Couleurs UI ---
 COLOR_BG = (15, 15, 25)
 COLOR_TEXT = (240, 240, 240)

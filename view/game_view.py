@@ -5,6 +5,7 @@ from constants import (
     GameState
 )
 from model.game_model import GameModel
+from pathlib import Path
 
 
 class GameView:
@@ -13,32 +14,86 @@ class GameView:
         self.screen = screen
         self.font = pygame.font.SysFont("Arial", 24)
 
+        chemin = Path(__file__).resolve().parent.parent / "assets" / "menu_accueil.png"
+        image = pygame.image.load(str(chemin)).convert()                                 # 2.1 On charge l’image du menu
+        self.menu_accueil = pygame.transform.smoothscale(image, self.screen.get_size())  # 2.1 On l’adapte à la fenêtre
+
+        fond = pygame.image.load(str(chemin.with_name("choix_circuit.png"))).convert()
+        self.fond_circuits = pygame.transform.smoothscale(fond, self.screen.get_size())  # 3.4 Fond du choix du circuit
+        self.police_titre = pygame.font.SysFont("Arial", 64, bold=True, italic=True)
+        self.position_cadre = 0.0                                       # 3.4 Le cadre commence sur le premier circuit
+
     def draw(self, model: GameModel) -> None:
         self.screen.fill(COLOR_BG)
         if model.state == GameState.MENU:
             self._draw_menu(model)
-        elif model.state == GameState.RACING:
+        elif model.state == GameState.CIRCUIT_SELECTION:
+            self._draw_circuit_selection(model)                # 1 On affiche les deux circuits
+
+        elif model.state in (GameState.RACING, GameState.FINISHED):  # 4.3 On garde la piste visible à la fin
             self._draw_racing(model)
+
+            if model.state == GameState.FINISHED:
+                titre = self.police_titre.render(f"J{model.winner} a gagné !", True, COLOR_ACCENT)
+                aide = self.font.render("M pour revenir au menu", True, COLOR_TEXT)
+
+                cx, cy = self.screen.get_rect().center
+                titre_rect = titre.get_rect(center=(cx, cy - 20))
+                aide_rect = aide.get_rect(center=(cx, titre_rect.bottom + 20))
+                panneau = titre_rect.union(aide_rect).inflate(48, 32)    # 5.2 On garde une marge autour des deux textes
+
+                pygame.draw.rect(self.screen, COLOR_PANEL, panneau, border_radius=12)
+                self.screen.blit(titre, titre_rect)                      # 5.2 On affiche le gagnant au milieu de l’écran
+                self.screen.blit(aide, aide_rect)
+
+        elif model.state == GameState.PAUSED:
+            self._draw_racing(model)                        # 2 On garde le circuit et la voiture à l'écran
+            message = self.font.render("Pause  |  Échap : reprendre  |  M : menu", True, COLOR_ACCENT)
+            rect = message.get_rect(center=(WINDOW_WIDTH // 2, 40))
+            pygame.draw.rect(self.screen, COLOR_PANEL, rect.inflate(30, 16))
+            self.screen.blit(message, rect)                  # 2 On affiche les touches de pause
+
         pygame.display.flip()
 
     def _draw_menu(self, model: GameModel) -> None:
-        cx = WINDOW_WIDTH // 2
+        self.screen.blit(self.menu_accueil, (0, 0))  # 2.1 On affiche l’image du menu
 
-        title_surf = self.font.render(
-            "Jeu de course 2D", True, COLOR_ACCENT)
-        self.screen.blit(title_surf, title_surf.get_rect(center=(cx, 160)))
+    def _draw_circuit_selection(self, model: GameModel) -> None:
+        """Affiche les deux circuits et montre lequel est choisi."""
 
-        options = [("JOUER (Enter)", GameState.RACING),
-                   ("QUITTER (Escape)", None)]
-        for i, (label, _) in enumerate(options):
-            y = 320 + i * 80
-            rect = pygame.Rect(cx - 140, y - 25, 280, 50)
-            pygame.draw.rect(self.screen, COLOR_PANEL, rect, border_radius=8)
-            pygame.draw.rect(self.screen, COLOR_PANEL_BORDER,
-                             rect, 2, border_radius=8)
-            text_surf = self.font.render(
-                label, True, COLOR_ACCENT if i == 0 else COLOR_TEXT)
-            self.screen.blit(text_surf, text_surf.get_rect(center=rect.center))
+        self.screen.blit(self.fond_circuits, (0, 0))  # 3.4 On dessine la piste derrière les boutons
+
+        cx = WINDOW_WIDTH // 2                                  # 1 On prend le milieu de l’écran
+
+        title = self.police_titre.render("Choix du circuit", True, (255, 207, 66))
+
+        self.screen.blit(title, title.get_rect(center=(cx, 160)))
+
+        ecart = model.selected_circuit - self.position_cadre
+        self.position_cadre += ecart * 0.2              # 3.4 À chaque image, le cadre se rapproche du circuit choisi
+
+        for index, name in enumerate(model.circuit_names):
+            selected = index == model.selected_circuit                 # 1 On regarde si ce circuit est choisi
+            color = COLOR_ACCENT if selected else COLOR_TEXT
+
+            rect = pygame.Rect(cx - 145, 300 + index * 82, 290, 50)
+            bouton = pygame.Surface(rect.size, pygame.SRCALPHA)
+            pygame.draw.rect(bouton, (22, 20, 48, 165), bouton.get_rect(), border_radius=10)
+            self.screen.blit(bouton, rect)  # 3.4 On voit encore la piste à travers le bouton
+            pygame.draw.rect(self.screen, (67, 170, 202), rect, 2, border_radius=10)
+            label = self.font.render(name, True, color)
+            self.screen.blit(label, label.get_rect(center=rect.center))
+
+        hauteur = round(300 + self.position_cadre * 82)
+        cadre = pygame.Rect(cx - 145, hauteur, 290, 50)
+        pygame.draw.rect(self.screen, (255, 207, 66), cadre, 3, border_radius=10)  # 3.4 Un seul cadre suit le choix
+
+        hint = self.font.render(
+            "↑ ↓ Choisir   Entrée Valider   Échap Retour",
+            True,
+            COLOR_TEXT,
+        )
+        self.screen.blit(hint, hint.get_rect(center=(cx, 565)))             # 4.4 On place l’aide sous le troisième bouton
 
     def _draw_racing(self, model: GameModel) -> None:
 
@@ -52,3 +107,31 @@ class GameView:
             return
         surf, rect = model.car.get_rotated_sprite()
         self.screen.blit(surf, rect)
+
+        surf_2, rect_2 = model.car_2.get_rotated_sprite()  # 3.1 On récupère l’image et la position de J2
+        self.screen.blit(surf_2, rect_2)                   # 3.1 On dessine J2 sur le circuit
+
+        for nom, position in (("J1", rect), ("J2", rect_2)):  # 3.2 Chaque voiture a son nom.
+            texte = self.font.render(nom, True, COLOR_TEXT)
+            place = texte.get_rect(midbottom=(position.centerx, position.top - 4)) # 3.2 On place le nom juste au-dessus
+            self.screen.blit(texte, place)
+
+        for joueur, voiture in ((1, model.car), (2, model.car_2)):
+            tours = model.laps[joueur]                          # 5.1 On lit les tours terminés par ce joueur.
+            points = len(model.visited[joueur])                 # 5.1 On compte ses checkpoints du tour.
+
+            ligne = (
+                f"J{joueur}   Tours : {tours}/{model.laps_to_win}"
+                f"   Checkpoints : {points}/{len(model.checkpoints)}"
+            )
+            if voiture.is_boosted():
+                ligne += "   Boost"                             # 5.1 On affiche le boost quand il est actif.
+
+            texte_info = self.font.render(ligne, True, COLOR_TEXT)
+            if joueur == 1:
+                cadre = texte_info.get_rect(bottomleft=(12, WINDOW_HEIGHT - 12))
+            else:
+                cadre = texte_info.get_rect(bottomright=(WINDOW_WIDTH - 12, WINDOW_HEIGHT - 12))
+
+            pygame.draw.rect(self.screen, COLOR_PANEL, cadre.inflate(12, 8), border_radius=6)
+            self.screen.blit(texte_info, cadre)                 # 5.1 J1 est en bas à gauche et J2 en bas à droite
