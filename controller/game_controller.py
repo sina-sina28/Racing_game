@@ -75,6 +75,7 @@ class GameController:
 
         elif state == GameState.FINISHED and key == pygame.K_m:
             self.model.state = GameState.MENU        # 5.2 Après la victoire, M ramène au menu
+            self.play_menu_music()  # 5.3 La première fois, j'ai oublié de relancer la musique du menu après la victoire.
 
     def play_menu_music(self):
         dossier = Path(__file__).resolve().parent.parent / "assets" / "music"
