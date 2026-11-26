@@ -102,3 +102,23 @@ class GameView:
             texte = self.font.render(nom, True, COLOR_TEXT)
             place = texte.get_rect(midbottom=(position.centerx, position.top - 4)) # 3.2 On place le nom juste au-dessus
             self.screen.blit(texte, place)
+
+        for joueur, voiture in ((1, model.car), (2, model.car_2)):
+            tours = model.laps[joueur]                          # 5.1 On lit les tours terminés par ce joueur.
+            points = len(model.visited[joueur])                 # 5.1 On compte ses checkpoints du tour.
+
+            ligne = (
+                f"J{joueur}   Tours : {tours}/{model.laps_to_win}"
+                f"   Checkpoints : {points}/{len(model.checkpoints)}"
+            )
+            if voiture.is_boosted():
+                ligne += "   Boost"                             # 5.1 On affiche le boost quand il est actif.
+
+            texte_info = self.font.render(ligne, True, COLOR_TEXT)
+            if joueur == 1:
+                cadre = texte_info.get_rect(bottomleft=(12, WINDOW_HEIGHT - 12))
+            else:
+                cadre = texte_info.get_rect(bottomright=(WINDOW_WIDTH - 12, WINDOW_HEIGHT - 12))
+
+            pygame.draw.rect(self.screen, COLOR_PANEL, cadre.inflate(12, 8), border_radius=6)
+            self.screen.blit(texte_info, cadre)                 # 5.1 J1 est en bas à gauche et J2 en bas à droite
