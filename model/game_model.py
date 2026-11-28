@@ -97,6 +97,8 @@ class GameModel:
             self.circuit = Circuit.create_easy()
         elif self.selected_circuit == 1:
             self.circuit = Circuit.create_intermediate()
+        elif self.selected_circuit == 2:
+            self.circuit = Circuit.create_hard()
         else:
              return False
 

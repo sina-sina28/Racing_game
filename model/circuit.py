@@ -363,7 +363,330 @@ class Circuit:
             checkpoint_ids=(1, 2),
             laps_to_win=3
         )
+    @classmethod
+    def create_intermediate(cls):
 
+        # Chaque caractère représente une case.
+        #
+        # R = Route
+        # G = Herbe
+        # D = Terre
+        # I = Glace
+        # V = Vide
+
+        layout = [
+
+            "VVVVVVVVVVVVVVVV",
+
+            "VGGVVGDDDRRRGGGV",
+
+            "VGGGGGDRDRRRGGGV",
+
+            "VRRDDDIVVDRRRDDV",
+
+            "VRRVVVVVGDRRRDDV",
+
+            "VRGVVVVVRRVVVVVV",
+
+            "VDGVVVVVRRRRRRVV",
+
+            "VDDVVVVVVRRRRRGV",
+
+            "VDDVVVVVVVVVDIIV",
+
+            "VRRRRRIIIGGGDIIV",
+
+            "VRRRRRIIIGGDDIIV",
+
+            "VVVVVVVVVVVVVVVV"
+
+        ]
+
+        # Vérifie les dimensions de la grille.
+        if len(layout) != GRID_ROWS:
+            raise ValueError("Nombre de lignes incorrect")
+
+        for row in layout:
+
+            if len(row) != GRID_COLS:
+                raise ValueError("Nombre de colonnes incorrect")
+
+        # ==================================================
+        # TYPES DE TERRAINS
+        # ==================================================
+
+        terrain_classes = {
+
+            "R": RoadTerrain,
+            "G": GrassTerrain,
+            "D": DirtTerrain,
+            "I": IceTerrain,
+            "V": VoidTerrain
+
+        }
+
+        # ==================================================
+        # BLOCS SPÉCIAUX
+        # ==================================================
+
+        start_p1 = StartBlock(1)
+
+        start_p2 = StartBlock(2)
+
+        checkpoint_1 = CheckpointBlock(1)
+
+        checkpoint_2 = CheckpointBlock(2)
+
+        finish = FinishBlock()
+
+        boost_1 = BoostBlock(1)
+
+        boost_2 = BoostBlock(2)
+
+        # Coordonnées sous la forme (ligne, colonne).
+        # Les cases adjacentes partagent le même objet bloc.
+
+        blocks_by_cell = {
+
+            # Positions de départ.
+            (9, 1): start_p1,
+            (10, 1): start_p2,
+
+            # Boost 1.
+            (9, 4): boost_1,
+            (10, 4): boost_1,
+
+            # Ligne d'arrivée.
+            (8, 1): finish,
+            (8, 2): finish,
+
+            # Checkpoint 1.
+            (6, 10): checkpoint_1,
+            (7, 10): checkpoint_1,
+
+            # Checkpoint 2.
+            (3, 12): checkpoint_2,
+            (4, 12): checkpoint_2,
+
+            # Boost 2.
+            (1, 11): boost_2,
+            (2, 11): boost_2
+
+        }
+
+        # ==================================================
+        # CONSTRUCTION DE LA GRILLE
+        # ==================================================
+
+        grid = []
+
+        for row_index, row_text in enumerate(layout):
+
+            tile_row = []
+
+            for col_index, symbol in enumerate(row_text):
+
+                terrain_class = terrain_classes[symbol]
+
+                terrain = terrain_class()
+
+                block = blocks_by_cell.get(
+                    (row_index, col_index)
+                )
+
+                tile = RoadTile(
+                    col=col_index,
+                    row=row_index,
+                    terrain=terrain,
+                    block=block
+                )
+
+                tile_row.append(tile)
+
+            grid.append(tile_row)
+
+        # ==================================================
+        # POSITIONS DE DÉPART
+        # ==================================================
+
+        start_positions = {
+
+            1: (9, 1),
+
+            2: (10, 1)
+
+        }
+
+        return cls(
+            grid=grid,
+            start_positions=start_positions,
+            checkpoint_ids=(1, 2),
+            laps_to_win=3
+        )
+
+
+
+    @classmethod
+    def create_hard(cls):
+
+        # Chaque caractère représente une case.
+        #
+        # R = Route
+        # G = Herbe
+        # D = Terre
+        # I = Glace
+        # V = Vide
+
+        layout3 = [
+
+            "VVVVVVVVVVVVVVVV",
+
+            "VGGRRRRRRRRRDIIV",
+
+            "VRRVVVVVVVVRRRIV",
+
+            "VRRRVVRRRRVVVRRV",
+
+            "VIIIVVRRVRVVVVRV",
+
+            "VRRVVVRRVRVVVVRV",
+
+            "VRVVRRIVVRVVVVDV",
+
+            "VRVGRDGVGGVVVVDV",
+
+            "VRRDIVVRIVVVVVDV",
+
+            "VRRRDVDRRVVVVVRV",
+
+            "VVRRVVDRRRRRRRRV",
+
+            "VVVVVVVVVVVVVVVV"
+
+        ]
+
+        # Vérifie les dimensions de la grille.
+        if len(layout3) != GRID_ROWS:
+            raise ValueError("Nombre de lignes incorrect")
+
+        for row in layout3:
+
+            if len(row) != GRID_COLS:
+                raise ValueError("Nombre de colonnes incorrect")
+
+        # ==================================================
+        # TYPES DE TERRAINS
+        # ==================================================
+
+        terrain_classes = {
+
+            "R": RoadTerrain,
+            "G": GrassTerrain,
+            "D": DirtTerrain,
+            "I": IceTerrain,
+            "V": VoidTerrain
+
+        }
+
+        # ==================================================
+        # BLOCS SPÉCIAUX
+        # ==================================================
+
+        start_p1 = StartBlock(1)
+
+        start_p2 = StartBlock(2)
+
+        checkpoint_1 = CheckpointBlock(1)
+
+        checkpoint_2 = CheckpointBlock(2)
+
+        finish = FinishBlock()
+
+        boost_1 = BoostBlock(1)
+
+        boost_2 = BoostBlock(2)
+
+        # Coordonnées sous la forme (ligne, colonne).
+        # Les cases adjacentes partagent le même objet bloc.
+
+        blocks_by_cell = {
+
+            # Positions de départ.
+            (8, 1): start_p1,
+            (9, 1): start_p2,
+
+            # Boost 1.
+            (8, 14): boost_1,
+            (8, 14): boost_1,
+
+            # Ligne d'arrivée.
+            (7, 1): finish,
+            (7, 1): finish,
+
+            # Checkpoint 1.
+            (5, 9): checkpoint_1,
+            (5, 9): checkpoint_1,
+
+            # Checkpoint 2.
+            (1, 10): checkpoint_2,
+            (1, 10): checkpoint_2,
+
+            # Boost 2.
+            (3, 1): boost_2,
+            (3, 2): boost_2
+
+        }
+
+        # ==================================================
+        # CONSTRUCTION DE LA GRILLE
+        # ==================================================
+
+        grid = []
+
+        for row_index, row_text in enumerate(layout3):
+
+            tile_row = []
+
+            for col_index, symbol in enumerate(row_text):
+
+                terrain_class = terrain_classes[symbol]
+
+                terrain = terrain_class()
+
+                block = blocks_by_cell.get(
+                    (row_index, col_index)
+                )
+
+                tile = RoadTile(
+                    col=col_index,
+                    row=row_index,
+                    terrain=terrain,
+                    block=block
+                )
+
+                tile_row.append(tile)
+
+            grid.append(tile_row)
+
+        # ==================================================
+        # POSITIONS DE DÉPART
+        # ==================================================
+
+        start_positions = {
+
+            1: (8, 1),
+
+            2: (9, 1)
+
+        }
+
+        return cls(
+            grid=grid,
+            start_positions=start_positions,
+            checkpoint_ids=(1, 2),
+            laps_to_win=3
+        )
+    
     # ==================================================
     # MÉTHODES COMMUNES AUX CIRCUITS
     # ==================================================
