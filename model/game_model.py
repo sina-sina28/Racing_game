@@ -93,10 +93,14 @@ class GameModel:
         """Charge le circuit sélectionné."""
 
         # Pour le moment, seul le circuit Easy est disponible.
-        if self.selected_circuit != 0:
-            return False
+        if self.selected_circuit == 0:
+            self.circuit = Circuit.create_easy()
+        elif self.selected_circuit == 1:
+            self.circuit = Circuit.create_intermediate()
+        else:
+             return False
 
-        self.circuit = Circuit.create_easy()
+        
 
         self.checkpoints = set(self.circuit.checkpoint_ids)
 
@@ -368,7 +372,7 @@ class GameModel:
         # Gère le bloc spécial sur lequel la voiture vient d'arriver.
         self._process_block(player, car, new_tile)
 
-    
+    # ==================================================
     # MISE À JOUR DU JEU
 
 
