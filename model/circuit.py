@@ -461,12 +461,12 @@ class Circuit:
             (8, 2): finish,
 
             # Checkpoint 1.
-            (6, 10): checkpoint_1,
-            (7, 10): checkpoint_1,
+            (3, 12): checkpoint_1,
+            (4, 12): checkpoint_1,
 
             # Checkpoint 2.
-            (3, 12): checkpoint_2,
-            (4, 12): checkpoint_2,
+            (4, 1): checkpoint_2,
+            (4, 2): checkpoint_2,
 
             # Boost 2.
             (1, 11): boost_2,
