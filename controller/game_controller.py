@@ -6,7 +6,6 @@ from constants import (
 )
 from model.game_model import GameModel
 from view.game_view import GameView
-from controller.input_handler import InputHandler
 from controller.input_handler import InputHandler, MAPPING_J1   # 3.1 ajouter mapping de joueur1
 from pathlib import Path
 
@@ -46,8 +45,6 @@ class GameController:
         if state == GameState.MENU:
             self.handle_menu_key(key)
 
-        if state == GameState.MENU:
-            self.handle_menu_key(key)
         elif state == GameState.CIRCUIT_SELECTION:  # 1 Gere les touches de l’ecran de selection
             self.handle_circuit_selection_key(key)
 
@@ -88,7 +85,7 @@ class GameController:
         elif key == pygame.K_ESCAPE:
             self.quit()
 
-    def handle_circuit_selection_key(self, key: int) -> None:
+    '''def handle_circuit_selection_key(self, key: int) -> None:
         """Gère les touches pendant le choix du circuit."""
         if key == pygame.K_UP and self.model.selected_circuit > 0:
             self.model.selected_circuit -= 1  # 1 Sélectionne le circuit précédent
@@ -107,7 +104,57 @@ class GameController:
 
             self.model.state = GameState.RACING  # 1 Lance la course
         elif key == pygame.K_ESCAPE:
-            self.model.state = GameState.MENU  # 1 Revient au menu principal
+            self.model.state = GameState.MENU  # 1 Revient au menu principal'''
+
+    def handle_circuit_selection_key(self, key: int):
+
+        """Handles circuit selection."""
+
+        if key == pygame.K_UP:
+
+            if self.model.selected_circuit > 0:
+                self.model.selected_circuit -= 1
+
+        elif key == pygame.K_DOWN:
+
+            last_index = len(self.model.circuit_names) - 1
+
+            if self.model.selected_circuit < last_index:
+                self.model.selected_circuit += 1
+
+        elif key == pygame.K_RETURN:
+
+            # Check whether the selected circuit is implemented.
+            if not self.model.load_circuit():
+
+                print(
+                    self.model.circuit_names[self.model.selected_circuit],
+                    "is not implemented yet."
+                )
+
+                return
+
+            # Load the music of the selected circuit.
+            musiques = (
+                "Circuit 1 (Easy).mp3",
+                "Circuit 2 (Normal).mp3",
+                "Circuit 3 (Hard).mp3"
+            )
+
+            musique = musiques[self.model.selected_circuit]
+
+            dossier = Path(__file__).resolve().parent.parent / "assets" / "music"
+
+            pygame.mixer.music.load(str(dossier / musique))
+
+            pygame.mixer.music.play(-1)
+
+            # Start the race.
+            self.model.state = GameState.RACING
+
+        elif key == pygame.K_ESCAPE:
+
+            self.model.state = GameState.MENU
 
     def update(self) -> None:
         if self.model.state != GameState.RACING:
@@ -115,7 +162,7 @@ class GameController:
 
         self.apply_input(self.model.car, self.input_j1.get_inputs())  # 3.1 J1 contrôle sa voiture
         self.apply_input(self.model.car_2, self.input_j2.get_inputs())  # 3.1 J2 contrôle la sienne
-        
+
         self.model.update()
 
     def apply_input(self, car, player_input) -> None:

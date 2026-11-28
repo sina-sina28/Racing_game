@@ -1,103 +1,395 @@
-from constants import (
-    GameState, GRID_ROWS, GRID_COLS,
-    DEFAULT_TRACTION, DEFAULT_SEUIL_DERAPAGE, DEFAULT_FROTTEMENT_DERAPAGE
-)
+from constants import GameState
+
 from model.car import Car
 from model.circuit import Circuit
-from model.road_tile import RoadTile
+
+from model.blocks import (
+    CheckpointBlock,
+    FinishBlock,
+    BoostBlock
+)
+
+from model.terrain import VoidTerrain
 
 
 class GameModel:
+    """Gère les joueurs, les terrains et le déroulement de la course."""
 
     def __init__(self):
-        self.state: str = GameState.MENU
 
-        self.circuit_names = (  # 4.4 On affiche la difficulté de chaque circuit.
-"Circuit 1 - Easy","Circuit 2 - Intermediate","Circuit 3 - Hard",)
-        
-        self.selected_circuit = 0                        # 1 Au début, on choisit le premier circuit
+        self.state = GameState.MENU
 
-        self.circuit: Circuit | None = None
-        self.car: Car | None = None
-
-        self.car_2: Car | None = None  # 3.1 La deuxième voiture sera créée au départ
-
-    def load_circuit(self) -> None:
-        cols = GRID_COLS               # 1 Le premier circuit garde sa largeur de départ
-        if self.selected_circuit == 1:
-            cols = 12                  # 1 Le deuxième circuit a 12 colonnes
-
-        elif self.selected_circuit == 2:
-            cols = 11               # 4.4 Grille provisoire pour tester le troisième choix
-
-        grid = [
-            [RoadTile(col=col, row=row) for col in range(cols)]
-            for row in range(GRID_ROWS)
-        ]
-        self.circuit = Circuit(grid=grid)
-
-        self.checkpoints = {(9, 1), (9, 2)}  # 4.1 Les deux points de passage de la grille de test
-        self.visited = {1: set(), 2: set()}  # 4.1 Chaque joueur commence avec zéro point visité
-        self.last_checkpoint = {1: None, 2: None}  # 4.1 Au départ, personne n’a atteint de point
-
-        self.finish_tile = (10, 2)  # 4.2 On place l’arrivée sur cette case de test
-        self.laps = {1: 0, 2: 0}     # 4.2 Chaque joueur commence à zéro tour
-
-        self.laps_to_win = 3  # 4.3 Sur nos circuits de test, il faut finir 3 tours
-        self.winner = None  # 4.3 Au départ, personne n’a gagné
-
-        self.spawn_car()
-    def spawn_car(self) -> None:
-        self.car = Car(7, 1)
-        self.car_2 = Car(7, 2)  # 3.1 J2 démarre une case plus bas que J1
-
-    def update_car_terrain(self, car: Car) -> None:
-        """Donne à la voiture les propriétés du terrain de la case sous elle."""
-        tile = self.circuit.get_tile_at_pixel(car.x, car.y)
-        if tile is None:
-            return  # Hors de la carte, c'est le vide : géré par la partie circuit (B)
-        # getattr : tant que les cases n'ont pas de terrain, on garde les valeurs de la route
-        car.set_terrain(
-            getattr(tile, "traction", DEFAULT_TRACTION),
-            getattr(tile, "seuil_derapage", DEFAULT_SEUIL_DERAPAGE),
-            getattr(tile, "frottement_derapage", DEFAULT_FROTTEMENT_DERAPAGE),
+        self.circuit_names = (
+            "Circuit 1 - Easy",
+            "Circuit 2 - Intermediate",
+            "Circuit 3 - Hard"
         )
 
-    def check_checkpoint(self, player, car):
+        self.selected_circuit = 0
 
-        if self.winner is not None:
-            return               # 4.3 On a déjà un gagnant, la course est finie
+        self.circuit = None
 
-        tile = self.circuit.get_tile_at_pixel(car.x, car.y)  # 4.1 On cherche la case sous la voiture
-        if tile is None:
+        # ------------------------------------------
+        # DEUX JOUEURS
+        # ------------------------------------------
+
+        self.car = None
+        self.car_2 = None
+
+        # ------------------------------------------
+        # INFORMATIONS SUR LA COURSE
+        # ------------------------------------------
+
+        self.checkpoints = {1, 2}
+
+        self.visited = {
+            1: set(),
+            2: set()
+        }
+
+        # Prochain checkpoint à atteindre par chaque joueur.
+        self.next_checkpoint = {
+            1: 1,
+            2: 1
+        }
+
+        # Dernière position enregistrée pour chaque joueur.
+        # Les coordonnées sont exprimées en pixels (x, y).
+
+        self.last_checkpoint_position = {
+            1: None,
+            2: None
+        }
+
+        # Orientation enregistrée au dernier checkpoint.
+        self.last_checkpoint_angle = {
+            1: 0.0,
+            2: 0.0
+        }
+
+        self.laps = {
+            1: 0,
+            2: 0
+        }
+
+        self.laps_to_win = 3
+
+        self.winner = None
+
+        # Mémorise le bloc spécial occupé par chaque voiture.
+        # Évite d'activer plusieurs fois le même bloc.
+
+        self.active_block = {
+            1: None,
+            2: None
+        }
+
+    # ==================================================
+    # CHARGEMENT DU CIRCUIT
+    # ==================================================
+
+    def load_circuit(self) -> bool:
+
+        """Charge le circuit sélectionné."""
+
+        # Pour le moment, seul le circuit Easy est disponible.
+        if self.selected_circuit != 0:
+            return False
+
+        self.circuit = Circuit.create_easy()
+
+        self.checkpoints = set(self.circuit.checkpoint_ids)
+
+        self.laps_to_win = self.circuit.laps_to_win
+
+        # Réinitialise les informations de la course.
+        self.laps = {
+            1: 0,
+            2: 0
+        }
+
+        self.visited = {
+            1: set(),
+            2: set()
+        }
+
+        self.next_checkpoint = {
+            1: 1,
+            2: 1
+        }
+
+        self.winner = None
+
+        self.active_block = {
+            1: None,
+            2: None
+        }
+
+        self.last_checkpoint_position = {
+            1: None,
+            2: None
+        }
+
+        self.last_checkpoint_angle = {
+            1: 0.0,
+            2: 0.0
+        }
+
+        self.spawn_cars()
+
+        return True
+
+    # ==================================================
+    # PLACEMENT DES VOITURES
+    # ==================================================
+
+    def spawn_cars(self):
+
+        """Place les deux voitures sur leurs positions de départ."""
+
+        row_1, col_1 = self.circuit.start_positions[1]
+
+        row_2, col_2 = self.circuit.start_positions[2]
+
+        self.car = Car(col_1, row_1)
+
+        self.car_2 = Car(col_2, row_2)
+
+        # Enregistre les positions et orientations initiales.
+        self._save_checkpoint_state(1, self.car)
+
+        self._save_checkpoint_state(2, self.car_2)
+
+    # ==================================================
+    # ENREGISTREMENT DU CHECKPOINT
+    # ==================================================
+
+    def _save_checkpoint_state(self, player, car):
+
+        """
+        Enregistre la position et l'orientation de la voiture.
+        Ces informations seront utilisées lors de sa réapparition.
+        """
+
+        self.last_checkpoint_position[player] = (
+            car.x,
+            car.y
+        )
+
+        self.last_checkpoint_angle[player] = car.angle
+
+    # ==================================================
+    # DÉTECTION DU VIDE
+    # ==================================================
+
+    def _is_void(self, tile):
+
+        """
+        Vérifie si la voiture est en dehors de la carte
+        ou sur une case de type VoidTerrain.
+        """
+
+        return (
+            tile is None
+            or isinstance(tile.terrain, VoidTerrain)
+        )
+
+    # ==================================================
+    # GESTION DU TERRAIN
+    # ==================================================
+
+    def update_car_terrain(self, car):
+
+        """Met à jour les propriétés du terrain sous la voiture."""
+
+        tile = self.circuit.get_tile_at_pixel(
+            car.x,
+            car.y
+        )
+
+        # Le terrain vide est géré par le système de réapparition.
+        if self._is_void(tile):
             return
 
-        point = (tile.col, tile.row)
-        if point in self.checkpoints:
-            self.visited[player].add(point)  # 4.1 On garde ce point pour ce joueur
-            self.last_checkpoint[player] = point  # 4.1 On retient son dernier point de passage
+        terrain = tile.terrain
 
-        elif point == self.finish_tile:
-            if self.visited[player] == self.checkpoints:
-                self.laps[player] += 1         # 4.2 Le joueur a vu tous les points, il gagne un tour
-                self.visited[player].clear()   # 4.2 Il doit repasser par les points au tour suivant
+        car.set_terrain(
+            terrain.traction,
+            terrain.drift_threshold,
+            terrain.drift_friction
+        )
 
+    # ==================================================
+    # RÉAPPARITION AU DERNIER CHECKPOINT
+    # ==================================================
+
+    def _respawn_at_last_checkpoint(self, player, car):
+
+        """
+        Replace la voiture au dernier checkpoint enregistré.
+        Restaure sa position et son orientation.
+        Réinitialise sa vitesse et ses effets de mouvement.
+        """
+
+        # Récupère la dernière position et orientation enregistrées.
+        checkpoint_x, checkpoint_y = self.last_checkpoint_position[player]
+
+        checkpoint_angle = self.last_checkpoint_angle[player]
+
+        # Replace la voiture à sa dernière position enregistrée.
+        # Cette méthode réinitialise également ses paramètres de mouvement.
+
+        car.reset_at(
+            checkpoint_x,
+            checkpoint_y
+        )
+
+        # Restaure l'orientation de la voiture.
+        car.angle = checkpoint_angle
+
+        # La voiture n'occupe plus son ancien bloc spécial.
+        self.active_block[player] = None
+
+        # Met à jour les propriétés du terrain à la nouvelle position.
+        self.update_car_terrain(car)
+
+    # ==================================================
+    # INTERACTIONS AVEC LES BLOCS
+    # ==================================================
+
+    def _process_block(self, player, car, tile):
+
+        block = tile.block
+
+        block_id = block.block_id if block is not None else None
+
+        # La voiture a quitté un bloc spécial.
+        if block_id is None:
+
+            self.active_block[player] = None
+
+            return
+
+        # Évite de réactiver un bloc déjà occupé.
+        if block_id == self.active_block[player]:
+
+            return
+
+        self.active_block[player] = block_id
+
+        # ------------------------------------------
+        # CHECKPOINT
+        # ------------------------------------------
+
+        if isinstance(block, CheckpointBlock):
+
+            # Les checkpoints doivent être franchis dans le bon ordre.
+            if block.order == self.next_checkpoint[player]:
+
+                self.visited[player].add(block.order)
+
+                # Enregistre la position et l'orientation de la voiture.
+                self._save_checkpoint_state(player, car)
+
+                self.next_checkpoint[player] += 1
+
+        # ------------------------------------------
+        # LIGNE D'ARRIVÉE
+        # ------------------------------------------
+
+        elif isinstance(block, FinishBlock):
+
+            # Un tour est validé uniquement après C1 et C2.
+            if self.next_checkpoint[player] == len(self.checkpoints) + 1:
+
+                self.laps[player] += 1
+
+                # Réinitialise la progression pour le tour suivant.
+                self.visited[player].clear()
+
+                self.next_checkpoint[player] = 1
+
+                # Vérifie si le joueur a gagné.
                 if self.laps[player] >= self.laps_to_win:
-                    self.winner = player             # 4.3 On garde le numéro du gagnant
-                    self.state = GameState.FINISHED  # 4.3 Les voitures s’arrêtent
 
-    def update(self) -> None:
-        """Met à jour le jeu pendant la course : terrain sous la voiture, puis physique."""
-        if self.state != GameState.RACING or self.circuit is None:
+                    self.winner = player
+
+                    self.state = GameState.FINISHED
+
+        # ------------------------------------------
+        # BOOST
+        # ------------------------------------------
+
+        elif isinstance(block, BoostBlock):
+
+            car.apply_boost()
+
+    # ==================================================
+    # MISE À JOUR D'UN JOUEUR
+    # ==================================================
+
+    def _update_one_car(self, player, car):
+
+        # Vérifie la case actuelle avant le calcul du mouvement.
+        current_tile = self.circuit.get_tile_at_pixel(
+            car.x,
+            car.y
+        )
+
+        # Si la voiture est déjà dans le vide, la replacer.
+        if self._is_void(current_tile):
+
+            self._respawn_at_last_checkpoint(player, car)
+
             return
-        self.update_car_terrain(self.car)  # D'abord le terrain, pour que la physique l'utilise
-        self.car.update_position()
 
-        self.update_car_terrain(self.car_2)  # 3.1 On regarde le terrain sous J2
-        self.car_2.update_position()  # 3.1 On déplace aussi la deuxième voiture
+        # Applique les propriétés du terrain actuel.
+        self.update_car_terrain(car)
 
-        self.check_checkpoint(1, self.car)  # 4.1 On vérifie où J1 vient d’arriver
-        self.check_checkpoint(2, self.car_2)  # 4.1 On fait pareil pour J2
+        # Met à jour la physique et la position de la voiture.
+        car.update_position()
+
+        # Vérifie immédiatement la nouvelle position.
+        new_tile = self.circuit.get_tile_at_pixel(
+            car.x,
+            car.y
+        )
+
+        # Si la voiture tombe dans le vide, la replacer.
+        if self._is_void(new_tile):
+
+            self._respawn_at_last_checkpoint(player, car)
+
+            return
+
+        # Met à jour les propriétés du terrain pour la prochaine frame.
+        self.update_car_terrain(car)
+
+        # Gère le bloc spécial sur lequel la voiture vient d'arriver.
+        self._process_block(player, car, new_tile)
+
+    
+    # MISE À JOUR DU JEU
 
 
+    def update(self):
 
+        """Met à jour les deux voitures et leurs interactions avec le circuit."""
+
+        if (
+            self.state != GameState.RACING
+            or self.circuit is None
+            or self.car is None
+            or self.car_2 is None
+        ):
+            return
+
+        # Mise à jour du joueur 1.
+        self._update_one_car(1, self.car)
+
+        # Si le joueur 1 a gagné, arrêter la mise à jour.
+        if self.state != GameState.RACING:
+            return
+
+        # Mise à jour du joueur 2.
+        self._update_one_car(2, self.car_2)
